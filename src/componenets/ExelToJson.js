@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
+import useProductTotalCalculator from "../\bhooks/useProductTotalCalculator";
 function findCommonValues(arr1, arr2) {
   return arr1.filter((value) => arr2.includes(value));
 }
@@ -9,6 +10,8 @@ const ExcelToJson = () => {
   const [withYouList, setWithYouList] = useState(null);
   const [reviewPlaceList, setReviewPlaceList] = useState(null);
   const [filteredList, setFilteredList] = useState(null);
+  const { calculateTotalAmount } = useProductTotalCalculator();
+
   // 위드유 핸들러
   const handleWithYouFileChange = (event) => {
     const file = event.target.files[0];
@@ -71,8 +74,8 @@ const ExcelToJson = () => {
           if (
             header === "주문인" ||
             header === "주문인 휴대폰" ||
-            header === "주문인 휴대폰" ||
-            header === "금액"
+            header === "금액" ||
+            header.trim() === "product" // cl excel ALcol label need to change into product
           ) {
             obj[header] = row[index];
           }
@@ -80,7 +83,7 @@ const ExcelToJson = () => {
           return obj;
         }, {})
       );
-
+      console.log("rawdata", convertedData);
       setclList(convertedData);
       //중복제외
       console.log(clList);
@@ -104,8 +107,10 @@ const ExcelToJson = () => {
         return !(isInWithYouList || isInReviewPlaceList);
       });
       //출력
-      console.log("필터링완료: ", finalData);
-      setFilteredList(finalData);
+      const calreturn = calculateTotalAmount(finalData);
+      console.log("필터링완료: ", calreturn);
+
+      setFilteredList(calreturn);
     };
     reader.readAsArrayBuffer(file);
   };
